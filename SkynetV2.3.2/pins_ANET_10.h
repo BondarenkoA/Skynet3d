@@ -87,6 +87,7 @@
 	#elif ENABLED(ANET_FULL_GRAPHICS_LCD)
 		#define BEEPER_PIN 17
 
+    #define SERVO0_PIN         29
 		#define LCD_PINS_RS        27
 		#define LCD_PINS_ENABLE    28
 		#define LCD_PINS_D4        30

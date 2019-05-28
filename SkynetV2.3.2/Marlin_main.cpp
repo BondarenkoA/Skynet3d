@@ -2121,6 +2121,8 @@ static void clean_up_after_endstop_or_probe_move() {
   // at the height where the probe triggered.
   static float run_z_probe() {
 
+    float avg = 0;
+    
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS(">>> run_z_probe", current_position);
     #endif
@@ -2153,8 +2155,15 @@ static void clean_up_after_endstop_or_probe_move() {
     #endif
 
     // move down slowly to find bed
-    do_probe_move(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_SLOW);
-
+#define AVG_COUNTS 3
+    for(byte i=0; i < AVG_COUNTS; i++){
+      do_probe_move(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_SLOW);
+      avg += current_position[Z_AXIS];
+      do_blocking_move_to_z(current_position[Z_AXIS] + Z_CLEARANCE_BETWEEN_PROBES, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+    }
+    
+    avg = avg / AVG_COUNTS;
+    
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("<<< run_z_probe", current_position);
     #endif
@@ -2166,7 +2175,7 @@ static void clean_up_after_endstop_or_probe_move() {
         SERIAL_ECHOLNPAIR(" Discrepancy:", first_probe_z - current_position[Z_AXIS]);
       }
     #endif
-    return current_position[Z_AXIS];
+    return avg;//current_position[Z_AXIS];
   }
 
   //
