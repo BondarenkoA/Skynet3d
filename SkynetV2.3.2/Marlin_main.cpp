@@ -4112,7 +4112,9 @@ inline void gcode_G28() {
 
         float eqnAMatrix[abl2 * 3], // "A" matrix of the linear system of equations
               eqnBVector[abl2],     // "B" vector of Z points
-              mean = 0.0;
+              mean = 0.0,
+              min_z = 1000.0,
+              max_z = -1000.0;
 
       #endif // AUTO_BED_LEVELING_LINEAR
 
@@ -4177,6 +4179,10 @@ inline void gcode_G28() {
           #if ENABLED(AUTO_BED_LEVELING_LINEAR)
 
             mean += measured_z;
+            
+            min_z = measured_z < min_z ? measured_z : min_z;
+            max_z = measured_z > max_z ? measured_z : max_z;
+            
             eqnBVector[probePointCounter] = measured_z;
             eqnAMatrix[probePointCounter + 0 * abl2] = xProbe;
             eqnAMatrix[probePointCounter + 1 * abl2] = yProbe;
@@ -4359,6 +4365,18 @@ inline void gcode_G28() {
         }
       } //do_topography_map
 
+    char msg[12] = {}; 
+    int dZ; 
+    
+    dZ = (max_z - min_z) * 1000;
+  
+    sprintf_P(msg, PSTR("dZ: 0.%03d mm"), dZ); //max_z - min_z);
+
+    SERIAL_PROTOCOLPGM("\n");
+    SERIAL_PROTOCOL(msg);
+    
+    lcd_setstatus(msg);
+    
     #endif // AUTO_BED_LEVELING_LINEAR
 
     #if ABL_PLANAR
